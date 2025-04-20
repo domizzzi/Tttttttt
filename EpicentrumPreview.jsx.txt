@@ -1,0 +1,1664 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Define categories with data (40 items defined)
+// Data for different informational categories relevant to immigrants
+const categories = [
+  // Row 1 (0-9)
+  { key: 'visaU', emoji: '🛃', color: 'bg-lime-100 text-lime-700', content: 'Visa especial para víctimas de delitos que colaboran con autoridades.', label: 'Visa U' },
+  { key: 'asilo', emoji: '🛡️', color: 'bg-blue-100 text-blue-800', content: 'Protección para quienes han sufrido persecución.', label: 'Asilo político' },
+  { key: 'ciudadania', emoji: '🇺🇸', color: 'bg-red-100 text-red-800', content: 'Proceso para obtener la nacionalidad estadounidense.', label: 'Ciudadanía' },
+  { key: 'tpsDaca', emoji: '📄', color: 'bg-green-100 text-green-800', content: 'Programas que ofrecen protección temporal.', label: 'TPS o DACA' },
+  { key: 'trabajo', emoji: '💼', color: 'bg-purple-100 text-purple-800', content: 'Información sobre empleo y derechos laborales.', label: 'Trabajo y derechos' },
+  { key: 'vivienda', emoji: '🏠', color: 'bg-pink-100 text-pink-800', content: 'Opciones de alojamiento y derechos de inquilinos.', label: 'Renta y vivienda' },
+  { key: 'saludEducacion', emoji: '❤️‍🩹', color: 'bg-rose-100 text-rose-800', content: 'Acceso a servicios de salud y educación básica.', label: 'Salud y educación' },
+  { key: 'detencion', emoji: '🛑', color: 'bg-gray-200 text-red-600', content: 'Qué hacer en caso de detención migratoria.', label: 'Detención y defensa legal' },
+  { key: 'tramites', emoji: '📂', color: 'bg-teal-100 text-teal-800', content: 'Gestión de papeles migratorios y legales.', label: 'Trámites y documentos' },
+  { key: 'ayudaComunitaria', emoji: '🤝', color: 'bg-yellow-100 text-yellow-700', content: 'Apoyo de organizaciones y voluntarios.', label: 'Ayuda comunitaria' },
+  // Row 2 (10-19)
+  { key: 'abusoLaboral', emoji: '⚠️', color: 'bg-yellow-200 text-yellow-900', content: 'Protección frente a explotación y abusos.', label: 'Abuso laboral' },
+  { key: 'educacionBecas', emoji: '🎓', color: 'bg-indigo-100 text-indigo-800', content: 'Oportunidades educativas y ayudas escolares.', label: 'Educación y becas' },
+  { key: 'formularios', emoji: '📝', color: 'bg-slate-100 text-slate-800', content: 'Formatos oficiales para trámites.', label: 'Formularios migratorios' },
+  { key: 'infoEstado', emoji: '📍', color: 'bg-orange-100 text-orange-800', content: 'Regulaciones locales en EE.UU.', label: 'Información por estado' },
+  { key: 'opcionesSinPapeles', emoji: '🔐', color: 'bg-gray-100 text-gray-700', content: 'Alternativas legales sin documentos migratorios.', label: 'Opciones sin papeles' },
+  { key: 'cbpOne', emoji: '🛂', color: 'bg-blue-200 text-blue-900', content: 'Agendamiento de citas con CBP.', label: 'CBP One – Citas migratorias' },
+  { key: 'appsUtiles', emoji: '📱', color: 'bg-blue-100 text-blue-800', content: 'Aplicaciones recomendadas para inmigrantes.', label: 'Apps útiles' },
+  { key: 'serviciosLegales', emoji: '⚖️', color: 'bg-purple-100 text-purple-800', content: 'Abogados y defensores migratorios cercanos.', label: 'Servicios legales' },
+  { key: 'clasesIngles', emoji: '🧑‍🏫', color: 'bg-green-100 text-green-800', content: 'Dónde y cómo tomar clases gratuitas o pagadas.', label: 'Clases de inglés' },
+  { key: 'escuelasNinos', emoji: '🚸', color: 'bg-pink-100 text-pink-800', content: 'Ayuda escolar, inscripción y derechos.', label: 'Escuelas y niños' },
+  // Row 3 (20-29)
+  { key: 'cuentaBancaria', emoji: '💳', color: 'bg-amber-100 text-amber-800', content: 'Cómo abrir cuentas aún sin seguro social.', label: 'Abrir cuenta bancaria' },
+  { key: 'transportePublico', emoji: '🚌', color: 'bg-cyan-100 text-cyan-800', content: 'Guías para usar el transporte y obtener pases.', label: 'Transporte público' },
+  { key: 'saludGratis', emoji: '🏥', color: 'bg-rose-100 text-rose-800', content: 'Clínicas de bajo costo o gratuitas.', label: 'Centros de salud gratis' },
+  { key: 'derechosPolicia', emoji: '👮', color: 'bg-gray-100 text-gray-800', content: 'Cómo actuar en detenciones o paradas.', label: 'Tus derechos con la policía' },
+  { key: 'traductores', emoji: '💬', color: 'bg-teal-100 text-teal-900', content: 'Herramientas para traducir y pedir ayuda.', label: 'Traductores y asistencia' },
+  { key: 'creditos', emoji: '🏦', color: 'bg-green-200 text-green-900', content: 'Cómo acceder a microcréditos y préstamos personales.', label: 'Créditos y préstamos' },
+  { key: 'impuestos', emoji: '🧾', color: 'bg-yellow-200 text-yellow-900', content: 'Cómo presentar tus impuestos con o sin ITIN.', label: 'Impuestos y formularios' },
+  { key: 'asistenciaAlimentaria', emoji: '🛒', color: 'bg-pink-200 text-pink-900', content: 'Accede a bancos de comida y programas de ayuda.', label: 'Asistencia alimentaria' },
+  { key: 'direccionPostal', emoji: '📬', color: 'bg-blue-100 text-blue-900', content: 'Opciones si no tienes domicilio fijo.', label: 'Dirección postal' },
+  { key: 'recursosGratuitos', emoji: '📚', color: 'bg-indigo-100 text-indigo-900', content: 'Sitios web y documentos útiles sin costo.', label: 'Recursos gratuitos' },
+  // Row 4 (30-39)
+  { key: 'refugios', emoji: '🛏️', color: 'bg-orange-100 text-orange-900', content: 'Lugares donde puedes dormir seguro.', label: 'Refugios temporales' },
+  { key: 'podcasts', emoji: '🎙️', color: 'bg-rose-200 text-rose-900', content: 'Programas que te informan y motivan diariamente.', label: 'Podcasts educativos' },
+  { key: 'licenciaConducir', emoji: '🚗', color: 'bg-lime-100 text-lime-800', content: 'Requisitos y proceso para obtenerla en tu estado.', label: 'Licencia de conducir' },
+  { key: 'enviarDinero', emoji: '💰', color: 'bg-blue-100 text-blue-900', content: 'Formas seguras y económicas de enviar remesas.', label: 'Enviar dinero' },
+  { key: 'viajesFamilia', emoji: '✈️', color: 'bg-red-100 text-red-900', content: 'Información sobre reunificación familiar y permisos de viaje.', label: 'Viajes y familia' },
+  { key: 'culturaEventos', emoji: '🎭', color: 'bg-green-100 text-green-900', content: 'Eventos culturales y actividades comunitarias locales.', label: 'Cultura y eventos' },
+  { key: 'participacionCivica', emoji: '🗳️', color: 'bg-purple-100 text-purple-900', content: 'Formas de involucrarte en tu comunidad local.', label: 'Participación cívica' },
+  { key: 'emergenciasGenerales', emoji: '🆘', color: 'bg-pink-100 text-pink-900', content: 'Números y recursos para diferentes tipos de emergencias.', label: 'Emergencias generales' },
+  { key: 'bienestarMental', emoji: '🧘', color: 'bg-rose-100 text-rose-900', content: 'Recursos para el manejo del estrés y la salud emocional.', label: 'Bienestar mental' },
+  { key: 'preguntasFrecuentes', emoji: '❓', color: 'bg-teal-100 text-teal-900', content: 'Respuestas a dudas comunes sobre inmigración.', label: 'Preguntas frecuentes' }
+];
+
+
+// Array with 25 informative phrases
+const informativePhrases = [
+    "Tienes derecho a permanecer en silencio si te detiene la policía.",
+    "Guarda el número de un abogado de inmigración de confianza.",
+    "No firmes ningún documento que no entiendas sin consultar a un abogado.",
+    "Busca organizaciones locales que ofrezcan ayuda legal gratuita o de bajo costo.",
+    "Conoce tus derechos laborales: tienes derecho a un salario justo y condiciones seguras.",
+    "El asilo es una protección para quienes temen regresar a su país por persecución.",
+    "La Visa U es para víctimas de ciertos crímenes que colaboran con las autoridades.",
+    "Infórmate sobre los requisitos para el TPS o DACA si podrías calificar.",
+    "Existen recursos comunitarios para encontrar vivienda temporal o asistencia.",
+    "Hay clínicas de salud comunitarias que ofrecen servicios a bajo costo o gratis.",
+    "Tus hijos tienen derecho a inscribirse en la escuela pública sin importar tu estatus.",
+    "Aprender inglés puede abrirte muchas puertas; busca clases gratuitas en tu área.",
+    "Puedes abrir una cuenta bancaria en algunos bancos usando tu ITIN o pasaporte.",
+    "Documenta cualquier incidente de abuso laboral y busca ayuda legal.",
+    "Mantén copias de todos tus documentos importantes en un lugar seguro.",
+    "Si eres detenido por ICE, tienes derecho a llamar a tu consulado.",
+    "La 'carga pública' puede afectar algunas solicitudes de residencia permanente.",
+    "Consulta fuentes oficiales como USCIS.gov para información migratoria precisa.",
+    "Existen programas de asistencia alimentaria como SNAP o bancos de comida locales.",
+    "Infórmate sobre cómo obtener una licencia de conducir en tu estado, si es posible.",
+    "Participa en talleres informativos sobre tus derechos y opciones.",
+    "Crea un plan de emergencia familiar en caso de separación.",
+    "No compartas información personal sensible con desconocidos.",
+    "La violencia doméstica es un crimen; busca ayuda si estás en una situación de abuso.",
+    "Cuida tu salud mental; busca grupos de apoyo o consejería si lo necesitas."
+];
+
+// --- Mapping of category labels to relevant external links ---
+// **NOTA:** Estos son enlaces y descripciones de EJEMPLO. Debes reemplazarlos con contenido real y verificado.
+const extraLinksMap = {
+  'Visa U': [
+      { url: 'https://www.uscis.gov/es/programas-humanitarios/victimas-de-actos-criminales/visa-u-para-victimas-de-actos-criminales', description: 'Información oficial de USCIS sobre la Visa U.' },
+      { url: 'https://www.womenslaw.org/es/info/inmigracion/visa-u', description: 'Guía detallada sobre la Visa U para víctimas.' },
+      { url: 'https://cliniclegal.org/resources/asylum-and-special-immigrant-visas/u-visa', description: 'Recursos legais de CLINIC sobre la Visa U.' }
+  ],
+  'Asilo político': [
+      { url: 'https://www.uscis.gov/es/programas-humanitarios/refugiados-y-asilo/asilo', description: 'Proceso de solicitud de asilo en EE.UU. (USCIS).' },
+      { url: 'https://www.justice.gov/eoir/espanol-asylum-fact-sheet', description: 'Hoja informativa sobre asilo del Departamento de Justicia.' },
+      { url: 'https://www.unhcr.org/es/que-hacemos/proteger-los-derechos-humanos/asilo-y-migracion', description: 'Información sobre asilo y migración de ACNUR.' }
+  ],
+  'Ciudadanía': [
+      { url: 'https://www.uscis.gov/es/ciudadania/ciudadania-estadounidense', description: 'Guía oficial de USCIS para obtener la ciudadanía.' },
+      { url: 'https://www.usa.gov/es/ciudadania-estadounidense-e-inmigracion', description: 'Recursos del gobierno sobre ciudadanía e inmigración.' },
+      { url: 'https://www.consumerfinance.gov/es/practicar-la-ciudadania/', description: 'Herramientas para prepararse para el examen de ciudadanía.' }
+  ],
+  'TPS o DACA': [
+      { url: 'https://www.uscis.gov/es/programas-humanitarios/estatus-de-proteccion-temporal', description: 'Información oficial sobre el Estatus de Protección Temporal (TPS).' },
+      { url: 'https://www.uscis.gov/es/DACA', description: 'Detalles sobre la Acción Diferida (DACA) de USCIS.' },
+      { url: 'https://www.informedimmigrant.com/guides/daca-es/', description: 'Guías y recursos actualizados sobre DACA.' }
+  ],
+  'Trabajo y derechos': [
+      { url: 'https://www.dol.gov/general/topic/spanish-speaking-audience', description: 'Recursos laborales del Departamento de Trabajo (DOL).' },
+      { url: 'https://www.worker.gov/es/', description: 'Información sobre derechos y protecciones laborales.' },
+      { url: 'https://www.eeoc.gov/es/select-task-force-study-harassment-workplace', description: 'Recursos sobre acoso y discriminación laboral (EEOC).' }
+  ],
+  'Renta y vivienda': [
+      { url: 'https://www.hud.gov/espanol', description: 'Información sobre vivienda y asistencia del HUD.' },
+      { url: 'https://www.consumerfinance.gov/es/coronavirus/informacion-sobre-vivienda/', description: 'Ayuda con pagos de hipoteca y alquiler (CFPB).' },
+      { url: 'https://www.usa.gov/es/buscar-ayuda-vivienda', description: 'Portal del gobierno para encontrar ayuda de vivienda.' }
+  ],
+  'Salud y educación': [
+      { url: 'https://www.cuidadodesalud.gov/es/', description: 'Mercado de seguros médicos oficial.' },
+      { url: 'https://findahealthcenter.hrsa.gov/?zip=&state=OR&city=Hillsboro&fd=0&languages=Spanish&services=', description: 'Encuentra centros de salud comunitarios cercanos.' },
+      { url: 'https://www.usa.gov/es/educacion', description: 'Recursos educativos del gobierno de EE.UU.' }
+  ],
+  'Detención y defensa legal': [
+      { url: 'https://www.aclu.org/know-your-rights/que-hacer-si-lo-detiene-la-policia-los-agentes-de-inmigracion-o-el-fbi/', description: 'Conoce tus derechos si eres detenido (ACLU).' },
+      { url: 'https://www.immigrationadvocates.org/nonprofit/legaldirectory/', description: 'Directorio de abogados de inmigración gratuitos o de bajo costo.' },
+      { url: 'https://www.justice.gov/eoir/list-pro-bono-legal-service-providers', description: 'Lista oficial de proveedores legales pro bono.' }
+  ],
+  'Trámites y documentos': [
+      { url: 'https://www.uscis.gov/es/formularios', description: 'Encuentra todos los formularios de USCIS.' },
+      { url: 'https://www.usa.gov/es/agencias-federales/servicio-de-ciudadania-e-inmigracion-de-estados-unidos', description: 'Información sobre USCIS en USA.gov.' },
+      { url: 'https://travel.state.gov/content/travel/es/pasaportes.html', description: 'Información sobre pasaportes del Departamento de Estado.' }
+  ],
+  'Ayuda comunitaria': [
+      { url: 'https://www.211info.org/es/', description: 'Conecta con servicios sociales y de salud (ej. 211).' },
+      { url: 'https://www.uniteus.com/es/', description: 'Red de coordinación de servicios comunitarios.' },
+      { url: 'https://findhelp.org/', description: 'Busca ayuda local por código postal (comida, vivienda, etc.).' }
+  ],
+  'Abuso laboral': [
+      { url: 'https://www.dol.gov/agencies/whd/contact/complaints', description: 'Cómo presentar una queja por salarios o condiciones laborales (DOL).' },
+      { url: 'https://www.osha.gov/workers/file-complaint', description: 'Reportar condiciones de trabajo inseguras (OSHA).' },
+      { url: 'https://www.nationalpartnership.org/our-work/resources/economic-justice/fair-pay/espanol-know-your-rights-equal-pay.pdf', description: 'Información sobre igualdad salarial.' }
+  ],
+  'Educación y becas': [
+      { url: 'https://studentaid.gov/es/', description: 'Ayuda federal para estudiantes (FAFSA).' },
+      { url: 'https://mydocumentedlife.org/category/high-school-scholarships/', description: 'Recursos y becas para estudiantes indocumentados.' },
+      { url: 'https://www.thedream.us/scholarships/', description: 'Becas para Dreamers a nivel universitario.' }
+  ],
+  'Formularios migratorios': [
+      { url: 'https://www.uscis.gov/es/formularios/todos-los-formularios', description: 'Acceso directo a todos los formularios oficiales de USCIS.' },
+      { url: 'https://www.ilrc.org/es/form-help', description: 'Ayuda para completar formularios de inmigración (ILRC).' }
+  ],
+  'Información por estado': [
+      { url: 'https://www.usa.gov/es/estados-y-territorios', description: 'Encuentra sitios web oficiales de cada estado.' },
+      { url: 'https://www.nilc.org/issues/drivers-licenses/', description: 'Leyes sobre licencias de conducir para inmigrantes por estado.' }
+  ],
+  'Opciones sin papeles': [
+      { url: 'https://www.informedimmigrant.com/guides/conozca-sus-derechos-es/', description: 'Guía sobre derechos para inmigrantes indocumentados.' },
+      { url: 'https://www.nilc.org/issues/economic-support/overview-immigrant-eligibility-fed-programs/', description: 'Elegibilidad de inmigrantes para programas federales.' }
+  ],
+  'CBP One – Citas migratorias': [
+      { url: 'https://www.cbp.gov/about/mobile-apps-directory/cbpone', description: 'Información y descarga de la app CBP One.' },
+      { url: 'https://www.humanrightsfirst.org/resource/informaci-n-sobre-cbp-one-para-solicitantes-de-asilo', description: 'Guía sobre el uso de CBP One para solicitar asilo.' }
+  ],
+  'Apps útiles': [
+      { url: 'https://www.usa.gov/es/aplicaciones-moviles', description: 'Directorio de apps móviles del gobierno de EE.UU.' },
+      { url: 'https://www.remitly.com/es/es', description: 'Ejemplo de app para enviar dinero.' },
+      { url: 'https://www.duolingo.com/', description: 'Ejemplo de app para aprender inglés.' }
+  ],
+  'Servicios legales': [
+      { url: 'https://www.immigrationadvocates.org/nonprofit/legaldirectory/', description: 'Busca abogados de inmigración gratuitos o de bajo costo.' },
+      { url: 'https://www.justice.gov/eoir/list-pro-bono-legal-service-providers', description: 'Lista oficial de proveedores legales pro bono por estado.' },
+      { url: 'https://www.ailalawyer.com/', description: 'Directorio de abogados de la Asociación Americana de Abogados de Inmigración (AILA).' }
+  ],
+  'Clases de inglés': [
+      { url: 'https://www.usalearns.org/es', description: 'Cursos de inglés gratuitos en línea.' },
+      { url: 'https://www.usa.gov/es/aprender-ingles', description: 'Recursos del gobierno para aprender inglés.' },
+      { description: 'Busca "clases de inglés ESL gratis" en tu biblioteca pública local.', url: '#' } // Placeholder, encourage local search
+  ],
+  'Escuelas y niños': [
+      { url: 'https://www2.ed.gov/es/parents/landing.html', description: 'Recursos para padres del Departamento de Educación.' },
+      { url: 'https://www.colorincolorado.org/es/familias', description: 'Apoyo bilingüe para familias sobre educación.' },
+      { url: 'https://protectingimmigrantfamilies.org/know-your-rights/', description: 'Derechos de familias inmigrantes en escuelas y servicios.' }
+  ],
+   'Abrir cuenta bancaria': [
+      { url: 'https://www.consumerfinance.gov/es/obtener-respuestas/puedo-abrir-una-cuenta-bancaria-si-soy-inmigrante-con-un-numero-itin-en-vez-de-un-numero-de-seguro-social-ssn-es-2115/', description: 'Información sobre abrir cuentas con ITIN (CFPB).' },
+      { url: 'https://www.fdic.gov/resources/consumers/consumer-news/spanish/2021-08.html', description: 'Consejos para abrir cuentas bancarias seguras (FDIC).' },
+      { url: 'https://www.ncua.gov/es/ayuda', description: 'Información sobre Cooperativas de Crédito (Credit Unions).' }
+  ],
+  'Transporte público': [
+      { url: 'https://trimet.org/spanish/', description: 'Ejemplo: Información de transporte público en Portland/Hillsboro.' },
+      { url: 'https://www.transit.app/es', description: 'App popular para planificar rutas de transporte público.' },
+      { description: 'Busca la autoridad de transporte de tu ciudad o condado.', url: '#' } // Placeholder
+  ],
+  'Centros de salud gratis': [
+      { url: 'https://findahealthcenter.hrsa.gov/?zip=&state=OR&city=Hillsboro&fd=0&languages=Spanish&services=', description: 'Encuentra centros de salud financiados federalmente.' },
+      { url: 'https://freeclinicdirectory.org/oregon_care.html', description: 'Directorio de clínicas gratuitas (ejemplo para Oregon).' },
+      { url: 'https://www.needy meds.org/es/free_clinics.taf', description: 'Buscador de clínicas de bajo costo o gratuitas.' }
+  ],
+  'Tus derechos con la policía': [
+      { url: 'https://www.aclu.org/know-your-rights/que-hacer-si-lo-detiene-la-policia-los-agentes-de-inmigracion-o-el-fbi/', description: 'Guía detallada sobre tus derechos al ser detenido (ACLU).' },
+      { url: 'https://www.ilrc.org/es/red-cards', description: 'Tarjetas de derechos para mostrar a oficiales (ILRC).' }
+  ],
+  'Traductores y asistencia': [
+      { url: 'https://translate.google.com/', description: 'Traductor en línea gratuito (Google).' },
+      { url: 'https://www.deepl.com/translator', description: 'Otra opción de traductor en línea (DeepL).' },
+      { description: 'Busca servicios de interpretación comunitarios en tu área.', url: '#' } // Placeholder
+  ],
+  'Créditos y préstamos': [
+      { url: 'https://www.consumerfinance.gov/es/enviar-dinero/', description: 'Información sobre finanzas personales y crédito (CFPB).' },
+      { url: 'https://www.missionassetfund.org/es/programas-de-prestamos/', description: 'Préstamos para construir crédito (MAF).' },
+      { url: 'https://www.oportun.com/es/', description: 'Ejemplo de compañía que ofrece préstamos personales.' }
+  ],
+  'Impuestos y formularios': [
+      { url: 'https://www.irs.gov/es/individuals/international-taxpayers/taxpayer-identification-numbers-tin', description: 'Información sobre el número ITIN del IRS.' },
+      { url: 'https://www.irs.gov/es/filing/free-file-do-your-federal-taxes-for-free', description: 'Opciones para declarar impuestos gratis (IRS Free File).' },
+      { url: 'https://www.getyourrefund.org/es', description: 'Ayuda gratuita para la preparación de impuestos.' }
+  ],
+  'Asistencia alimentaria': [
+      { url: 'https://www.fns.usda.gov/es/snap/solicite', description: 'Información oficial sobre el programa SNAP (cupones de alimentos).' },
+      { url: 'https://www.feedingamerica.org/es/find-your-local-foodbank', description: 'Encuentra bancos de comida locales.' },
+      { url: 'https://oregonfoodbank.org/es/find-food/', description: 'Ejemplo: Buscador de asistencia alimentaria en Oregon.' }
+  ],
+  'Dirección postal': [
+      { url: 'https://www.usps.com/manage/forward-mail.htm', description: 'Cómo reenviar correo si te mudas (USPS).' },
+      { url: 'https://faq.usps.com/s/article/PO-Box-The-Basics', description: 'Información sobre apartados postales (PO Box).' },
+      { description: 'Considera servicios de buzón virtual si necesitas una dirección estable.', url: '#' } // Placeholder
+  ],
+  'Recursos gratuitos': [
+      { url: 'https://www.usa.gov/es', description: 'Portal oficial del gobierno de EE.UU. con información diversa.' },
+      { url: 'https://www.consumerfinance.gov/es/', description: 'Recursos sobre finanzas personales del CFPB.' },
+      { description: 'Visita tu biblioteca pública local para acceso a internet, libros y más.', url: '#' } // Placeholder
+  ],
+  'Refugios temporales': [
+      { url: 'https://www.hudexchange.info/housing-and-homeless-assistance/', description: 'Recursos para personas sin hogar del HUD.' },
+      { url: 'https://www.211info.org/es/shelter/', description: 'Busca refugios y asistencia de vivienda (ej. 211).' },
+      { url: 'https://www.samhsa.gov/homelessness-programs-resources/hpr-resources/urgent-community-response', description: 'Recursos urgentes para personas sin hogar.' }
+  ],
+  'Podcasts educativos': [
+      { url: 'https://www.npr.org/podcasts/510317/radio-ambulante', description: 'Podcast en español con historias latinoamericanas.' },
+      { url: 'https://open.spotify.com/show/01r5vkQUAjKGFkWcf4wH0s', description: 'Ejemplo: Podcast sobre finanzas personales en español.' },
+      { description: 'Busca podcasts sobre "inmigración USA", "aprender inglés", etc.', url: '#' } // Placeholder
+  ],
+  'Licencia de conducir': [
+      { url: 'https://www.usa.gov/es/renovar-licencia-conducir', description: 'Información general sobre licencias de conducir.' },
+      { url: 'https://www.nilc.org/issues/drivers-licenses/', description: 'Leyes sobre licencias para inmigrantes por estado (NILC).' },
+      { url: 'https://www.oregon.gov/odot/dmv/pages/driverid/licenseget.aspx', description: 'Ejemplo: Cómo obtener licencia en Oregon.' }
+  ],
+  'Enviar dinero': [
+      { url: 'https://www.consumerfinance.gov/es/enviar-dinero/', description: 'Consejos para enviar dinero de forma segura (CFPB).' },
+      { url: 'https://www.remitly.com/es/es', description: 'Ejemplo de servicio de envío de remesas.' },
+      { url: 'https://wise.com/es/', description: 'Otro ejemplo de servicio de envío de dinero.' }
+  ],
+  'Viajes y familia': [
+      { url: 'https://www.uscis.gov/es/tarjeta-verde/despues-de-concederle-la-tarjeta-verde/viajes-internacionales-como-residente-permanente', description: 'Información sobre viajar fuera de EE.UU. como residente.' },
+      { url: 'https://www.uscis.gov/es/familia', description: 'Procesos de inmigración basados en la familia (USCIS).' },
+      { url: 'https://travel.state.gov/content/travel/en/us-visas/immigrate/family-immigration.html', description: 'Visas familiares del Departamento de Estado.' }
+  ],
+  'Cultura y eventos': [
+      { url: 'https://www.hillsboro-oregon.gov/our-city/departments/parks-recreation/classes-activities', description: 'Ejemplo: Actividades y eventos en Hillsboro, OR.' },
+      { description: 'Busca el sitio web de tu ciudad o condado para eventos locales.', url: '#' }, // Placeholder
+      { description: 'Consulta el calendario de tu biblioteca pública local.', url: '#' } // Placeholder
+  ],
+  'Participación cívica': [
+      { url: 'https://www.usa.gov/es/elecciones', description: 'Información sobre elecciones y votación (para ciudadanos).' },
+      { url: 'https://www.uscis.gov/es/ciudadania/educacion-para-la-ciudadania', description: 'Recursos de educación cívica para la ciudadanía.' },
+      { description: 'Busca organizaciones locales de voluntariado o defensa de derechos.', url: '#' } // Placeholder
+  ],
+  'Emergencias generales': [
+      { url: 'https://www.ready.gov/es', description: 'Prepárate para desastres y emergencias.' },
+      { url: 'https://www.redcross.org/get-help.html', description: 'Ayuda en caso de desastres de la Cruz Roja.' },
+      { description: 'Llama al 911 para emergencias médicas, de policía o bomberos.', url: 'tel:911' } // Direct call link
+  ],
+  'Bienestar mental': [
+      { url: 'https://www.nimh.nih.gov/health/topics/espanol', description: 'Información sobre salud mental del NIMH.' },
+      { url: 'https://www.samhsa.gov/find-help/national-helpline', description: 'Línea nacional de ayuda para salud mental y abuso de sustancias.' },
+      { url: 'https://findtreatment.gov/', description: 'Encuentra tratamiento para salud mental y adicciones.' }
+  ],
+  'Preguntas frecuentes': [
+      { url: 'https://www.uscis.gov/es/herramientas/preguntas-frecuentes', description: 'Preguntas frecuentes oficiales de USCIS.' },
+      { url: 'https://www.usa.gov/es/preguntas-frecuentes-inmigracion', description: 'Preguntas frecuentes sobre inmigración en USA.gov.' }
+  ],
+};
+
+
+// --- Reusable Carousel Component --- RESTORED ---
+// Displays a slice of categories in an infinitely scrolling horizontal carousel.
+const CategoryCarousel = ({ categorySlice, onCategoryClick }) => {
+    // Calculate animation duration based on the number of items
+    const animationDuration = (categorySlice.length || 10) * 12; // Slower speed
+    // Double the categories for seamless looping
+    const doubledCategories = [...categorySlice, ...categorySlice];
+
+    // Return null if no categories are provided
+    if (!categorySlice || categorySlice.length === 0) return null;
+
+    return (
+        <div className="w-full overflow-hidden py-2 relative group"> {/* Added group for potential hover effects */}
+            <motion.div
+                className="flex space-x-2"
+                style={{ width: 'max-content' }} // Ensure the div is wide enough
+                animate={{ x: [0, '-50%'] }} // Animate horizontally to half its width (one set of items)
+                transition={{
+                    ease: 'linear',
+                    duration: animationDuration,
+                    repeat: Infinity,
+                    repeatType: 'loop'
+                }}
+                // Pause animation on hover (optional)
+                // whileHover={{ animationPlayState: 'paused' }} // Requires group hover on parent
+            >
+                {doubledCategories.map((cat, idx) => (
+                    <motion.button
+                        key={`${cat.label}-carousel-${idx}`} // Unique key for each item
+                        whileHover={{ scale: 1.05, y: -2, transition: { duration: 0.1 } }} // Hover effect
+                        whileTap={{ scale: 0.95 }} // Tap effect
+                        onClick={() => onCategoryClick(cat)} // Call handler on click
+                        // Styling for the category button
+                        className={`min-w-[80px] sm:min-w-[90px] flex-shrink-0 rounded-lg shadow px-2 py-1 flex flex-col items-center justify-center text-xs transition-colors duration-150 ${cat.color} hover:brightness-105`} // Added hover brightness
+                        style={{ touchAction: 'pan-y' }} // Allow vertical scroll on touch devices
+                    >
+                        {/* Emoji */}
+                        <span className="text-xl sm:text-2xl mb-0.5 pointer-events-none">{cat.emoji}</span>
+                        {/* Label */}
+                        <span className="text-[10px] sm:text-xs font-semibold text-center pointer-events-none">{cat.label}</span>
+                    </motion.button>
+                ))}
+            </motion.div>
+        </div>
+    );
+};
+
+
+// --- Page Components ---
+
+// Home Page: RESTORED to show carousels
+const HomePage = ({ categories, onCategoryClick }) => {
+    return (
+        <div className="p-4 space-y-1">
+            {/* Render four carousels, each with a different slice of categories */}
+            <CategoryCarousel categorySlice={categories.slice(0, 10)} onCategoryClick={onCategoryClick} />
+            <CategoryCarousel categorySlice={categories.slice(10, 20)} onCategoryClick={onCategoryClick} />
+            <CategoryCarousel categorySlice={categories.slice(20, 30)} onCategoryClick={onCategoryClick} />
+            <CategoryCarousel categorySlice={categories.slice(30, 40)} onCategoryClick={onCategoryClick} />
+        </div>
+    );
+};
+
+// Categories Page: Placeholder (tab now opens sidebar)
+const CategoriesPage = () => (
+    <div className="p-4">
+        <h1 className="text-2xl font-bold mb-4 dark:text-white">Categorías</h1>
+        <p className="text-gray-600 dark:text-gray-400">Selecciona la pestaña 'Categorías' abajo para explorar los temas.</p>
+    </div>
+);
+
+
+// --- Assistant Page Component --- UPDATED ---
+const AssistantPage = ({
+    chatHistory,
+    inputText,
+    setInputText,
+    handleSendMessage,
+    isAssistantLoading,
+    darkMode,
+    themeColor,
+    initialAssistantGreeting // Added prop
+}) => {
+    const messagesEndRef = useRef(null); // Ref for auto-scrolling
+    const chatContainerRef = useRef(null); // Ref for the messages container
+
+    // Theme classes for chat bubbles
+    const userBubbleClasses = `bg-blue-500 text-white`;
+    const assistantBubbleClasses = `${darkMode ? 'bg-gray-700 text-gray-100' : 'bg-gray-200 text-gray-800'}`;
+    const themeSendButtonClasses = {
+        blue: 'bg-blue-600 hover:bg-blue-700', red: 'bg-red-600 hover:bg-red-700', green: 'bg-green-600 hover:bg-green-700', yellow: 'bg-yellow-500 hover:bg-yellow-600',
+        purple: 'bg-purple-600 hover:bg-purple-700', pink: 'bg-pink-600 hover:bg-pink-700', orange: 'bg-orange-600 hover:bg-orange-700', teal: 'bg-teal-600 hover:bg-teal-700',
+        indigo: 'bg-indigo-600 hover:bg-indigo-700', gray: 'bg-gray-600 hover:bg-gray-700', lime: 'bg-lime-600 hover:bg-lime-700', cyan: 'bg-cyan-600 hover:bg-cyan-700'
+    };
+    const currentSendButtonBg = themeSendButtonClasses[themeColor] || 'bg-blue-600 hover:bg-blue-700';
+
+    // Check if the chat history only contains the initial greeting
+    // Use the prop for the check
+    const isNewChat = chatHistory.length === 1 && chatHistory[0].content === initialAssistantGreeting;
+
+    // Welcome message content and animation variants
+    const welcomeTitle = "¡Hola! Soy Epicentrum Assistant."; // Updated Title
+    const welcomeMessage = "Sé que navegar el camino en un nuevo país puede ser complicado. Mi propósito es ser tu guía y ayudarte a encontrar respuestas claras sobre trámites, derechos, recursos y mucho más. Pregúntame lo que necesites.";
+    const promptMessage = "Escribe tu pregunta abajo para comenzar.";
+
+    // Variants for the container to stagger children
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: (i = 1) => ({
+            opacity: 1,
+            transition: { staggerChildren: 0.04, delayChildren: 0.2 * i }, // Faster typing speed
+        }),
+    };
+
+    // Variants for individual letters
+    const letterVariants = {
+        hidden: {
+            opacity: 0,
+            y: 10, // Slight upward movement on appear
+            transition: { type: 'spring', damping: 12, stiffness: 200 }
+        },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { type: 'spring', damping: 12, stiffness: 200 }
+        }
+    };
+
+    // Effect for auto-scrolling chat to the bottom
+    useEffect(() => {
+        // Scroll slightly delayed to allow layout adjustments after render
+        setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+    }, [chatHistory]); // Run when chatHistory changes
+
+    // Handle Enter key press in input field
+    const handleKeyPress = (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault(); // Prevent new line on Enter
+            handleSendMessage();
+        }
+    };
+
+    return (
+        // Use h-full here to make this component fill the parent <main>
+        <div className="flex flex-col h-full">
+            {/* Message display area */}
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+                {/* Animated Welcome Message */}
+                {isNewChat && (
+                    <motion.div
+                        initial="hidden" // Start hidden
+                        animate="visible" // Animate to visible
+                        variants={{ // Container animation for initial delay/fade
+                            hidden: { opacity: 0, y: 20 },
+                            visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut", delay: 0.1 } }
+                        }}
+                        className={`p-4 rounded-lg shadow mb-4 ${darkMode ? 'bg-gray-700 border border-gray-600' : 'bg-white border border-gray-200'}`}
+                    >
+                        {/* Animate Title */}
+                        <motion.h2
+                            className={`text-lg font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}
+                            variants={containerVariants} // Use container variants for staggering
+                            initial="hidden"
+                            animate="visible"
+                            aria-label={welcomeTitle} // For accessibility
+                        >
+                            {welcomeTitle.split("").map((char, index) => (
+                                <motion.span key={index} variants={letterVariants} className="inline-block">
+                                    {char === " " ? "\u00A0" : char} {/* Render space correctly */}
+                                </motion.span>
+                            ))}
+                             <span className="inline-block ml-1">👋</span>
+                        </motion.h2>
+
+                        {/* Animate Main Message */}
+                        <motion.p
+                            className={`text-sm mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}
+                            variants={containerVariants} // Use container variants for staggering
+                            initial="hidden"
+                            animate="visible"
+                            aria-label={welcomeMessage} // For accessibility
+                        >
+                            {welcomeMessage.split("").map((char, index) => (
+                                <motion.span key={index} variants={letterVariants} className="inline-block">
+                                     {char === " " ? "\u00A0" : char}
+                                </motion.span>
+                            ))}
+                        </motion.p>
+
+                         {/* Animate Prompt Message */}
+                        <motion.p
+                            className={`text-sm mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                            variants={containerVariants} // Use container variants for staggering
+                            custom={2} // Add a slight delay after the main message
+                            initial="hidden"
+                            animate="visible"
+                            aria-label={promptMessage} // For accessibility
+                        >
+                            {promptMessage.split("").map((char, index) => (
+                                <motion.span key={index} variants={letterVariants} className="inline-block">
+                                     {char === " " ? "\u00A0" : char}
+                                </motion.span>
+                            ))}
+                        </motion.p>
+                    </motion.div>
+                )}
+
+
+                {/* Regular Chat History (skip the initial greeting if showing welcome message) */}
+                {chatHistory.map((message, index) => {
+                    // Don't render the initial static greeting if we showed the animated one
+                    if (isNewChat && index === 0) {
+                        return null;
+                    }
+                    return (
+                        <div
+                            key={index}
+                            className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className={`rounded-lg px-4 py-2 max-w-xs lg:max-w-md shadow ${
+                                    message.type === 'user' ? userBubbleClasses : assistantBubbleClasses
+                                }`}
+                            >
+                                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                            </motion.div>
+                        </div>
+                    );
+                })}
+
+                {/* Loading Indicator */}
+                {isAssistantLoading && (
+                    <div className="flex justify-start">
+                         <motion.div
+                             initial={{ opacity: 0, y: 10 }}
+                             animate={{ opacity: 1, y: 0 }}
+                             transition={{ duration: 0.3 }}
+                             className={`rounded-lg px-4 py-2 max-w-xs lg:max-w-md shadow ${assistantBubbleClasses}`}
+                         >
+                            {/* Simple typing indicator */}
+                            <div className="flex space-x-1 items-center h-5">
+                                <motion.div
+                                    className="w-2 h-2 bg-current rounded-full"
+                                    animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                                    transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
+                                ></motion.div>
+                                <motion.div
+                                    className="w-2 h-2 bg-current rounded-full"
+                                    animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                                    transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+                                ></motion.div>
+                                <motion.div
+                                    className="w-2 h-2 bg-current rounded-full"
+                                    animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                                    transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+                                ></motion.div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+                {/* Empty div to scroll to */}
+                <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input area */}
+            <div className={`p-3 border-t ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-gray-200'}`}>
+                <div className="flex items-center space-x-2">
+                    <input
+                        type="text"
+                        value={inputText}
+                        onChange={(e) => setInputText(e.target.value)}
+                        onKeyPress={handleKeyPress} // Send on Enter
+                        placeholder="Escribe tu mensaje..."
+                        // Added disabled:cursor-not-allowed
+                        className={`flex-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed ${
+                            darkMode
+                                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-400'
+                                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500'
+                        }`}
+                        disabled={isAssistantLoading} // Disable input while loading
+                    />
+                    <button
+                        onClick={handleSendMessage}
+                        disabled={!inputText.trim() || isAssistantLoading} // Disable if input is empty or loading
+                        className={`p-2 rounded-md text-white transition-colors ${currentSendButtonBg} disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                        {/* Send Icon */}
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                            <path d="M3.105 3.105a.75.75 0 0 1 .815-.11l14.171 4.724a.75.75 0 0 1 0 1.362L3.92 13.73a.75.75 0 0 1-.815-.11.75.75 0 0 1-.11-.815L4.724 8.5 3.001 3.92a.75.75 0 0 1 .104-.815Z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+// Profile Page: UPDATED to display saved data ---
+const ProfilePage = ({ setActiveModal, darkMode }) => { // Added setActiveModal and darkMode props
+    const [viewName, setViewName] = useState('');
+    const [viewOccupation, setViewOccupation] = useState('');
+    const [viewGoals, setViewGoals] = useState('');
+
+    // Load data from localStorage when the component mounts or modal closes (though modal close won't trigger remount here)
+    useEffect(() => {
+        try {
+            setViewName(localStorage.getItem('profileName') || '');
+            setViewOccupation(localStorage.getItem('profileOccupation') || '');
+            setViewGoals(localStorage.getItem('profileGoals') || '');
+            console.log("Profile data loaded for ProfilePage.");
+        } catch (error) {
+            console.error("Failed to load profile data for ProfilePage", error);
+        }
+    }, []); // Run only on mount
+
+    // Function to open the edit modal
+    const openEditModal = () => {
+        setActiveModal('perfil');
+    };
+
+    return (
+        <div className="p-6">
+            <h1 className="text-2xl font-bold mb-6 dark:text-white">Tu Perfil 👤</h1>
+
+            <div className={`rounded-lg p-4 space-y-4 ${darkMode ? 'bg-gray-800' : 'bg-white shadow'}`}>
+                <div>
+                    <h2 className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Nombre:</h2>
+                    <p className={`mt-1 text-lg ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>{viewName || '-'}</p>
+                </div>
+                <div>
+                     <h2 className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ocupación:</h2>
+                    <p className={`mt-1 text-lg ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>{viewOccupation || '-'}</p>
+                </div>
+                 <div>
+                     <h2 className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Metas / Historia:</h2>
+                    <p className={`mt-1 text-base whitespace-pre-wrap ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{viewGoals || '-'}</p>
+                </div>
+            </div>
+
+            <div className="mt-6 text-center">
+                 <motion.button // Changed to motion.button
+                    onClick={openEditModal}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="px-5 py-2 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 transition-colors font-medium"
+                 >
+                     Editar Perfil
+                 </motion.button>
+            </div>
+             <p className="text-xs text-center mt-4 text-gray-500 dark:text-gray-400">
+                (Nota: Después de editar, puede que necesites volver a esta pestaña para ver los cambios.)
+            </p>
+        </div>
+    );
+};
+
+// --- Bottom Navigation Component --- UPDATED ---
+const BottomNavigationBar = ({ currentPage, setCurrentPage, openCategorySidebar, darkMode, themeColor, setActiveModal, setEmergencyModalView }) => { // Added setActiveModal, setEmergencyModalView
+    // Navigation items configuration - Added SOS in the middle
+    const navItems = [
+        { name: 'inicio', label: 'Inicio', icon: '🏠' },
+        { name: 'categorias', label: 'Categorías', icon: '📚' },
+        { name: 'sos', label: 'SOS', icon: '🆘' }, // SOS Button
+        { name: 'asistente', label: 'Asistente', icon: '💬' },
+        { name: 'perfil', label: 'Perfil', icon: '👤' },
+    ];
+
+    // Theme color mappings for active state styling
+    const themeActiveBgClasses = { blue: 'bg-blue-100', red: 'bg-red-100', green: 'bg-green-100', yellow: 'bg-yellow-100', purple: 'bg-purple-100', pink: 'bg-pink-100', orange: 'bg-orange-100', teal: 'bg-teal-100', indigo: 'bg-indigo-100', gray: 'bg-gray-200', lime: 'bg-lime-100', cyan: 'bg-cyan-100' };
+    const themeTextClasses = { blue: 'text-blue-900', red: 'text-red-900', green: 'text-green-900', yellow: 'text-yellow-900', purple: 'text-purple-900', pink: 'text-pink-900', orange: 'text-orange-900', teal: 'text-teal-900', indigo: 'text-indigo-900', gray: 'text-gray-900', lime: 'text-lime-900', cyan: 'text-cyan-900' };
+    const themeDarkTextClasses = { blue: 'dark:text-blue-100', red: 'dark:text-red-100', green: 'dark:text-green-100', yellow: 'dark:text-yellow-100', purple: 'dark:text-purple-100', pink: 'dark:text-pink-100', orange: 'dark:text-orange-100', teal: 'dark:text-teal-100', indigo: 'dark:text-indigo-100', gray: 'dark:text-gray-100', lime: 'dark:text-lime-100', cyan: 'dark:text-cyan-100' };
+
+    // Determine current theme classes based on props
+    const currentThemeActiveBg = themeActiveBgClasses[themeColor] || 'bg-gray-200';
+    const activeTextColorDark = themeDarkTextClasses[themeColor] || 'text-white';
+    const inactiveTextColorDark = 'text-gray-400';
+    const activeTextColorLight = themeTextClasses[themeColor] || 'text-blue-900';
+    const inactiveTextColorLight = 'text-gray-500';
+
+    // Updated click handler
+    const handleNavClick = (itemName) => {
+        if (itemName === 'categorias') {
+            openCategorySidebar(); // Open category sidebar
+        } else if (itemName === 'sos') {
+             // Open emergency modal
+             setActiveModal('emergencia');
+             setEmergencyModalView('main');
+        }
+        else {
+            setCurrentPage(itemName); // Default behavior: change page
+        }
+    };
+
+    return (
+        <nav className={`fixed bottom-0 left-0 right-0 border-t shadow-md z-40 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+            <div className="flex justify-around items-center h-16 max-w-screen-md mx-auto px-2">
+                {navItems.map((item) => {
+                    // SOS button is never considered "active" in the same way as pages
+                    const isActive = item.name !== 'sos' && currentPage === item.name;
+                    // Special style for SOS button (e.g., red text)
+                    const isSOS = item.name === 'sos';
+                    const sosColor = darkMode ? 'text-red-400' : 'text-red-600';
+
+                    return (
+                        // Changed to motion.button and added effects
+                        <motion.button
+                            key={item.name}
+                            onClick={() => handleNavClick(item.name)} // Use modified handler
+                            // Add specific animation for SOS button
+                            animate={isSOS ? { opacity: [1, 0.6, 1] } : {}}
+                            transition={isSOS ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : { type: 'spring', stiffness: 400, damping: 10 }}
+                            whileHover={{ scale: 1.03, y: -1 }}
+                            whileTap={{ scale: 0.97 }}
+                            // Apply conditional styling based on active state and dark mode
+                            // Added w-1/5 for 5 items
+                            // Added specific styling for SOS button
+                            className={`flex flex-col items-center justify-center text-center px-1 py-1 rounded-md w-1/5 h-full transition-colors duration-150
+                                ${isActive
+                                    ? (darkMode ? ` ${activeTextColorDark}` : `${currentThemeActiveBg} ${activeTextColorLight}`)
+                                    : (isSOS ? sosColor : (darkMode ? inactiveTextColorDark : inactiveTextColorLight))
+                                }
+                            `}
+                        >
+                            <span className={`text-2xl mb-0.5 ${isSOS ? sosColor : ''}`}>{item.icon}</span>
+                            <span className={`text-[10px] sm:text-xs font-medium ${isSOS ? sosColor : ''}`}>{item.label}</span>
+                        </motion.button>
+                    );
+                })}
+            </div>
+        </nav>
+    );
+};
+
+// --- Category Sidebar Component --- UPDATED ---
+const CategorySidebar = ({ isOpen, onClose, categories, onCategoryClick, darkMode, themeColor, themeHeaderBgClasses, setActiveModal }) => { // Added setActiveModal prop
+    const [searchTerm, setSearchTerm] = useState('');
+
+    // Filter categories based on search term (simple implementation)
+    const filteredCategories = categories.filter(category =>
+        category.label.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const handleItemClick = (category) => {
+        onCategoryClick(category); // Call the original handler (opens modal)
+    };
+
+     // Function to open the Help modal and close this sidebar
+    const openHelpModal = () => {
+        setActiveModal('help');
+        onClose(); // Close category sidebar
+    };
+
+    // Get the appropriate header background color based on the theme
+    // Ensure themeHeaderBgClasses is defined before accessing it
+    const currentThemeHeaderBg = (themeHeaderBgClasses && themeHeaderBgClasses[themeColor]) ? themeHeaderBgClasses[themeColor] : 'bg-gray-700'; // Fallback
+
+    // Helper function to render highlighted text
+    const renderHighlightedLabel = (label, term) => {
+        if (!term.trim()) {
+            return label; // No term, return original label
+        }
+        const lowerLabel = label.toLowerCase();
+        const lowerTerm = term.toLowerCase();
+        const startIndex = lowerLabel.indexOf(lowerTerm);
+
+        if (startIndex === -1) {
+            return label; // No match, return original label
+        }
+
+        const endIndex = startIndex + term.length;
+        const before = label.substring(0, startIndex);
+        const match = label.substring(startIndex, endIndex);
+        const after = label.substring(endIndex);
+
+        return (
+            <>
+                {before}
+                <span className="font-bold bg-yellow-200 dark:bg-yellow-600/50 rounded px-0.5"> {/* Highlight style */}
+                    {match}
+                </span>
+                {after}
+            </>
+        );
+    };
+
+
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <>
+                    {/* Backdrop */}
+                    <motion.div
+                        key="category-sidebar-backdrop"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+                        onClick={onClose} // Close on backdrop click
+                    />
+                    {/* Sidebar Content */}
+                    <motion.div
+                        key="category-sidebar-content"
+                        initial={{ x: '-100%' }}
+                        animate={{ x: 0 }}
+                        exit={{ x: '-100%' }}
+                        transition={{ type: 'tween', ease: 'easeInOut', duration: 0.3 }}
+                        // Use standard background, border applied to header
+                        className={`fixed top-0 left-0 h-full w-72 md:w-80 shadow-lg z-50 flex flex-col ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}
+                    >
+                        {/* Header - UPDATED with dynamic theme background */}
+                        <div className={`flex items-center justify-between p-4 ${currentThemeHeaderBg} text-white`}> {/* Apply theme bg and white text */}
+                            <h2 className="text-xl font-semibold">Categorías</h2>
+                            <button
+                                onClick={onClose}
+                                className={`p-1 rounded-full text-white/80 hover:text-white hover:bg-black/10 transition-colors`} // Adjusted colors for contrast
+                                aria-label="Cerrar categorías"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Search Bar */}
+                        <div className="p-4 border-b dark:border-gray-700"> {/* Added border */}
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="Buscar recursos..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className={`w-full p-2 pl-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-opacity-50 ${
+                                        darkMode
+                                            ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-400'
+                                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500'
+                                    }`}
+                                />
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Category List - UPDATED with highlighting */}
+                        <div className="flex-1 overflow-y-auto px-4 py-4"> {/* Added py-4 */}
+                            <ul className="space-y-1">
+                                {filteredCategories.map((category) => (
+                                    <li key={category.label}>
+                                         {/* Changed to motion.button and added effects */}
+                                        <motion.button
+                                            onClick={() => handleItemClick(category)}
+                                            whileHover={{ scale: 1.02, backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)' }}
+                                            whileTap={{ scale: 0.98 }}
+                                            transition={{ duration: 0.1 }}
+                                            className={`w-full flex items-center p-2 rounded-md text-left`} // Removed Tailwind hover
+                                        >
+                                            <span className="text-xl mr-3 w-6 text-center">{category.emoji}</span>
+                                            {/* Apply highlighting */}
+                                            <span className="text-sm font-medium">{renderHighlightedLabel(category.label, searchTerm)}</span>
+                                        </motion.button>
+                                    </li>
+                                ))}
+                                {filteredCategories.length === 0 && (
+                                    <li className={`p-2 text-sm text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        No se encontraron categorías.
+                                    </li>
+                                )}
+                            </ul>
+                        </div>
+
+                        {/* Footer Button - UPDATED */}
+                        <div className="p-4 border-t dark:border-gray-700 mt-auto">
+                             {/* Changed to motion.button and added effects + onClick */}
+                            <motion.button
+                                onClick={openHelpModal} // Open help modal
+                                whileHover={{ scale: 1.03 }}
+                                whileTap={{ scale: 0.97 }}
+                                className={`w-full flex items-center justify-center p-2 rounded-md text-sm font-medium transition-colors ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                                </svg>
+                                Ayuda y Soporte
+                            </motion.button>
+                        </div>
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>
+    );
+};
+
+
+// --- Main Application Component --- UPDATED ---
+export default function EpicentrumPreview() {
+    // State Hooks
+    const [darkMode, setDarkMode] = useState(true); // Dark mode state
+    const [themeColor, setThemeColor] = useState('blue'); // Theme color state
+    const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0); // Index for rotating phrases
+    // NEW: Define initial greeting string
+    const initialAssistantGreeting = "Hola me llamo Epicentrum Assistant. ¿En qué puedo ayudarte hoy?";
+    // Initialize chat history from localStorage or with a default message
+    const [chatHistory, setChatHistory] = useState(() => {
+        try {
+            const saved = localStorage.getItem('chatHistory');
+            const initialHistory = saved ? JSON.parse(saved) : [];
+            // Add initial greeting if history is empty
+            if (initialHistory.length === 0) {
+                 // Use the new greeting
+                initialHistory.push({ type: 'assistant', label: 'Asistente', content: initialAssistantGreeting });
+            }
+            return initialHistory;
+        } catch (error) {
+            console.error("Failed to parse chat history from localStorage", error);
+            // Fallback initial message using the new greeting
+            return [{ type: 'assistant', label: 'Asistente', content: initialAssistantGreeting }];
+        }
+    });
+    const [inputText, setInputText] = useState(''); // Input field state (for chat)
+    const [activeModal, setActiveModal] = useState(''); // Controls which modal is open ('', 'perfil', 'config', 'emergencia', 'categoryDetail', 'help') // Added 'help'
+    const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar visibility state (for history/settings)
+    const [isCategorySidebarOpen, setIsCategorySidebarOpen] = useState(false); // State for category sidebar
+    const [isAssistantLoading, setIsAssistantLoading] = useState(false); // Loading state for assistant responses
+    const [selectedCategoryData, setSelectedCategoryData] = useState(null); // Data for the category detail modal
+
+    // --- Profile State ---
+    const [profileName, setProfileName] = useState('');
+    const [profileOccupation, setProfileOccupation] = useState('');
+    const [profileGoals, setProfileGoals] = useState('');
+    const [profileSaveMessage, setProfileSaveMessage] = useState(''); // For feedback
+
+    // --- Chat Tone State ---
+    const [chatTone, setChatTone] = useState('amigable'); // Default tone
+
+    // --- State for Emergency SOS Modal ---
+    const [emergencyModalView, setEmergencyModalView] = useState('main'); // Current view within the emergency modal ('main', 'rights', 'sos_setup')
+    const [emergencyContact, setEmergencyContact] = useState(() => localStorage.getItem('emergencyContact') || ''); // Emergency contact number
+    const [sosSendAttemptMessage, setSosSendAttemptMessage] = useState(''); // Feedback message after trying to send SOS
+    const [isContactSaved, setIsContactSaved] = useState(!!localStorage.getItem('emergencyContact')); // Flag if contact is saved
+
+    // State for current page navigation
+    const [currentPage, setCurrentPage] = useState('inicio'); // Tracks the active page ('inicio', 'categorias', 'asistente', 'perfil')
+
+    // --- Effect to load profile data on mount ---
+    useEffect(() => {
+        try {
+            const savedName = localStorage.getItem('profileName') || '';
+            const savedOccupation = localStorage.getItem('profileOccupation') || '';
+            const savedGoals = localStorage.getItem('profileGoals') || '';
+            setProfileName(savedName);
+            setProfileOccupation(savedOccupation);
+            setProfileGoals(savedGoals);
+            console.log("Profile data loaded from localStorage.");
+        } catch (error) {
+            console.error("Failed to load profile data from localStorage", error);
+        }
+    }, []);
+
+     // --- Effect to load chat tone on mount ---
+     useEffect(() => {
+        try {
+            const savedChatTone = localStorage.getItem('chatTone') || 'amigable'; // Default to 'amigable'
+            setChatTone(savedChatTone);
+            console.log("Chat tone loaded from localStorage:", savedChatTone);
+        } catch (error) {
+            console.error("Failed to load chat tone from localStorage", error);
+        }
+    }, []);
+
+    // --- Effect to save chat tone when it changes ---
+    useEffect(() => {
+        try {
+            localStorage.setItem('chatTone', chatTone);
+            console.log("Chat tone saved to localStorage:", chatTone);
+        } catch (error) {
+            console.error("Failed to save chat tone to localStorage", error);
+        }
+    }, [chatTone]);
+
+     // --- Effect to load theme color on mount ---
+     useEffect(() => {
+        try {
+            const savedThemeColor = localStorage.getItem('themeColor');
+            if (savedThemeColor) {
+                setThemeColor(savedThemeColor);
+                console.log("Theme color loaded from localStorage:", savedThemeColor);
+            }
+        } catch (error) {
+            console.error("Failed to load theme color from localStorage", error);
+        }
+    }, []);
+
+    // --- Effect to save theme color when it changes ---
+    useEffect(() => {
+        try {
+            localStorage.setItem('themeColor', themeColor);
+            console.log("Theme color saved to localStorage:", themeColor);
+        } catch (error) {
+            console.error("Failed to save theme color to localStorage", error);
+        }
+    }, [themeColor]);
+
+
+    // Effect for the informative phrases carousel rotation
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentPhraseIndex(prev => (prev + 1) % informativePhrases.length);
+        }, 4000); // Change phrase every 4 seconds
+        return () => clearInterval(interval); // Cleanup interval on component unmount
+    }, []); // Empty dependency array ensures this runs only once on mount
+
+    // Effect to save chat history to localStorage whenever it changes
+    useEffect(() => {
+        try {
+            localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+        } catch (error) {
+            console.error("Failed to save chat history to localStorage", error);
+        }
+    }, [chatHistory]); // Run this effect when chatHistory changes
+
+
+    // Handler for clicking a category button (now also closes category sidebar) - UPDATED with DEFENSIVE CHECKS
+    const handleCategoryClick = (category) => {
+         // Defensive check 1: Ensure category object exists
+        if (!category || typeof category !== 'object') {
+            console.error("Invalid category object received:", category);
+            return;
+        }
+         // Defensive check 2: Use label as fallback key if needed, but prefer key if it exists
+        const categoryKey = category.key || category.label; // Use label as fallback key
+         if (!categoryKey) {
+             console.error("Category object missing 'key' or 'label':", category);
+             return;
+        }
+
+        console.log("Category clicked (raw):", category); // Log raw object
+
+        // Find the original category data structure if possible (using key or label)
+        // This part might be less relevant if we directly use the passed 'category' object for the modal
+        // Let's simplify and use the passed category object directly, assuming it has emoji, label, content, color
+        const categoryDataForModal = {
+            emoji: category.emoji,
+            label: category.label,
+            content: category.content,
+            color: category.color,
+            // Pass the key used for link lookup if available, otherwise use label
+            key: category.key || category.label
+        };
+
+
+        console.log("Data for modal:", categoryDataForModal); // Log data being set
+
+        setSelectedCategoryData(categoryDataForModal); // Store potentially translated data for modal
+        setIsCategorySidebarOpen(false); // Close category sidebar
+        setActiveModal('categoryDetail'); // Open the category detail modal
+    };
+
+
+    // Handler for sending message (Calls Backend API) - UPDATED
+    const handleSendMessage = async () => {
+        if (!inputText.trim() || isAssistantLoading) return; // Ignore empty messages or if already loading
+
+        const userMessage = inputText; // Store message before clearing input
+        const currentTone = chatTone; // Store current tone
+        setInputText(''); // Clear input field immediately
+        setIsAssistantLoading(true); // Show loading indicator
+
+        // Add user message to history, potentially replacing the initial greeting if it exists
+        const currentChatHistory = [...chatHistory]; // Copy current history
+        const isNewChat = currentChatHistory.length === 1 && currentChatHistory[0].content === initialAssistantGreeting;
+        const historyWithoutGreeting = isNewChat ? [] : currentChatHistory;
+        setChatHistory([...historyWithoutGreeting, { type: 'user', label: 'Tú', content: userMessage }]);
+
+        try {
+            // --- API Call to Vercel Serverless Function ---
+            console.log("Sending to backend:", { message: userMessage, tone: currentTone });
+            const response = await fetch('/api/chat', { // Relative URL works when deployed on Vercel
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: userMessage, tone: currentTone }), // Send message and tone
+            });
+
+            // Check if the response is ok (status code 200-299)
+            if (!response.ok) {
+                // Try to parse error message from backend if available
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (parseError) {
+                    // If parsing fails, use the status text
+                    errorData = { error: response.statusText };
+                }
+                 console.error("Backend error:", response.status, errorData);
+                // Add error message to chat
+                setChatHistory(prev => [...prev, {
+                    type: 'assistant',
+                    label: 'Asistente',
+                    content: `Error ${response.status}: ${errorData.error || 'No se pudo obtener respuesta del asistente.'}`
+                 }]);
+                 setIsAssistantLoading(false); // Hide loading indicator
+                return; // Stop processing
+            }
+
+            // Parse the JSON response from the backend
+            const data = await response.json();
+
+            // Check if the expected response format is received
+            if (data && data.response) {
+                 // Add assistant response to history
+                setChatHistory(prev => [...prev, { type: 'assistant', label: 'Asistente', content: data.response }]);
+            } else {
+                console.error("Respuesta inesperada del backend:", data);
+                setChatHistory(prev => [...prev, { type: 'assistant', label: 'Asistente', content: "Recibí una respuesta inesperada del servidor." }]);
+            }
+            // --- End API Call ---
+
+        } catch (error) {
+            // Handle network errors (e.g., backend not reachable)
+            console.error("Error fetching from backend:", error);
+            setChatHistory(prev => [...prev, { type: 'assistant', label: 'Asistente', content: "Error de red al contactar al asistente. ¿Está el backend funcionando?" }]);
+        } finally {
+            setIsAssistantLoading(false); // Hide loading indicator regardless of success/error
+        }
+    };
+
+
+    // --- Handler to save profile data --- (Unchanged)
+    const handleSaveProfile = () => {
+         try {
+            localStorage.setItem('profileName', profileName);
+            localStorage.setItem('profileOccupation', profileOccupation);
+            localStorage.setItem('profileGoals', profileGoals);
+            console.log("Profile data saved to localStorage.");
+            setProfileSaveMessage("¡Perfil guardado con éxito!"); // Set success message
+            // Clear message after a few seconds
+            setTimeout(() => setProfileSaveMessage(''), 3000);
+            setActiveModal(''); // Close modal after saving
+        } catch (error) {
+            console.error("Failed to save profile data to localStorage", error);
+            setProfileSaveMessage("Error al guardar el perfil.");
+             // Clear message after a few seconds
+            setTimeout(() => setProfileSaveMessage(''), 3000);
+        }
+    };
+
+    // --- Emergency Modal Handlers ---
+    // Navigate to the SOS setup/send view
+    const goToSOSSetupView = () => {
+        setSosSendAttemptMessage(''); // Clear previous messages
+        setEmergencyModalView('sos_setup');
+    };
+
+    // Save the emergency contact number to localStorage
+    const handleSaveContact = () => {
+        if (emergencyContact.trim()) {
+            localStorage.setItem('emergencyContact', emergencyContact.trim());
+            setIsContactSaved(true);
+            setSosSendAttemptMessage('Contacto guardado.'); // Provide feedback
+            console.log("Emergency contact saved:", emergencyContact.trim());
+        } else {
+            localStorage.removeItem('emergencyContact');
+            setIsContactSaved(false);
+            setSosSendAttemptMessage('Error: El número no puede estar vacío.');
+            console.log("Emergency contact cleared.");
+        }
+    };
+
+    // Create the standard SOS message text
+    const createSOSMessage = () => `🚨 ¡EMERGENCIA! Necesito ayuda urgente.`;
+
+    // Handler to attempt sending SOS via SMS - REMOVED
+    // const handleSendSMS = () => { ... };
+
+    // Handler to attempt sending SOS via WhatsApp
+    // NOTE: This uses WhatsApp URL scheme, requires WhatsApp installed and depends on user action.
+    const handleSendWhatsApp = () => {
+        if (!isContactSaved || !emergencyContact) {
+            setSosSendAttemptMessage('Error: Guarda un contacto de emergencia primero.');
+            return;
+        }
+        const message = createSOSMessage();
+        // Basic phone number cleanup (remove non-digits, assumes '+' prefix if needed is already there)
+        const whatsappNumber = emergencyContact.replace(/\D/g, '');
+        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+        console.log("Attempting to open WhatsApp URL:", whatsappUrl);
+        setSosSendAttemptMessage('Intentando abrir WhatsApp...');
+        // This will try to open WhatsApp.
+        window.open(whatsappUrl, '_blank');
+    };
+
+
+    // --- Theme Class Definitions --- UPDATED with Pastel ---
+    const themeHeaderBgClasses = {
+        blue: 'bg-blue-600', red: 'bg-red-600', green: 'bg-green-600', yellow: 'bg-yellow-500',
+        purple: 'bg-purple-600', pink: 'bg-pink-600', orange: 'bg-orange-600', teal: 'bg-teal-600',
+        indigo: 'bg-indigo-600', gray: 'bg-gray-700', lime: 'bg-lime-600', cyan: 'bg-cyan-600'
+    };
+    const themePastelBgClasses = {
+        blue: 'bg-blue-100', red: 'bg-red-100', green: 'bg-green-100', yellow: 'bg-yellow-100',
+        purple: 'bg-purple-100', pink: 'bg-pink-100', orange: 'bg-orange-100', teal: 'bg-teal-100',
+        indigo: 'bg-indigo-100', gray: 'bg-gray-100', lime: 'bg-lime-100', cyan: 'bg-cyan-100'
+    };
+     const themePastelBorderClasses = { // For light mode borders
+        blue: 'border-blue-200', red: 'border-red-200', green: 'border-green-200', yellow: 'border-yellow-200',
+        purple: 'border-purple-200', pink: 'border-pink-200', orange: 'border-orange-200', teal: 'border-teal-200',
+        indigo: 'border-indigo-200', gray: 'border-gray-200', lime: 'border-lime-200', cyan: 'border-cyan-200'
+    };
+     const themeDarkPastelBorderClasses = { // For dark mode borders
+        blue: 'dark:border-blue-600', red: 'dark:border-red-600', green: 'dark:border-green-600', yellow: 'dark:border-yellow-500',
+        purple: 'dark:border-purple-600', pink: 'dark:border-pink-600', orange: 'dark:border-orange-600', teal: 'dark:border-teal-600',
+        indigo: 'dark:border-indigo-600', gray: 'dark:border-gray-600', lime: 'dark:border-lime-600', cyan: 'dark:border-cyan-600'
+    };
+    const themePastelTextClasses = { // For titles in light mode
+        blue: 'text-blue-800', red: 'text-red-800', green: 'text-green-800', yellow: 'text-yellow-800',
+        purple: 'text-purple-800', pink: 'text-pink-800', orange: 'text-orange-800', teal: 'text-teal-800',
+        indigo: 'text-indigo-800', gray: 'text-gray-800', lime: 'text-lime-800', cyan: 'text-cyan-800'
+    };
+    // NEW: Theme classes for titles/important text based on theme color
+    const themeTitleTextClasses = {
+        blue: 'text-blue-600 dark:text-blue-400', red: 'text-red-600 dark:text-red-400', green: 'text-green-600 dark:text-green-400', yellow: 'text-yellow-600 dark:text-yellow-400',
+        purple: 'text-purple-600 dark:text-purple-400', pink: 'text-pink-600 dark:text-pink-400', orange: 'text-orange-600 dark:text-orange-400', teal: 'text-teal-600 dark:text-teal-400',
+        indigo: 'text-indigo-600 dark:text-indigo-400', gray: 'text-gray-700 dark:text-gray-300', lime: 'text-lime-600 dark:text-lime-400', cyan: 'text-cyan-600 dark:text-cyan-400'
+    };
+    // --- End Theme Class Definitions ---
+
+    // --- Get current theme classes based on state ---
+    const currentThemeHeaderBg = themeHeaderBgClasses[themeColor] || 'bg-blue-600'; // Fallback header background
+    const currentPastelBg = themePastelBgClasses[themeColor] || 'bg-gray-100';
+    const currentPastelBorder = themePastelBorderClasses[themeColor] || 'border-gray-200';
+    const currentDarkPastelBorder = themeDarkPastelBorderClasses[themeColor] || 'dark:border-gray-600';
+    const currentPastelText = themePastelTextClasses[themeColor] || 'text-gray-800';
+    const currentThemeTitleText = themeTitleTextClasses[themeColor] || 'text-gray-900 dark:text-white'; // Fallback for title text
+
+
+    // --- Animation Variants ---
+    const pageVariants = {
+      initial: { opacity: 0 },
+      animate: { opacity: 1, transition: { duration: 0.3 } },
+      exit: { opacity: 0, transition: { duration: 0.2 } }
+    };
+
+    // --- Function to render the current page content ---
+    // Selects which page component to render based on the currentPage state.
+    const renderCurrentPage = () => {
+        switch (currentPage) {
+            case 'inicio':
+                // Pass categories and handler
+                return <HomePage categories={categories} onCategoryClick={handleCategoryClick} />;
+            case 'categorias':
+                 // Categories page is now effectively handled by the sidebar trigger
+                 // Render HomePage content when 'categorias' tab is logically active but sidebar is closed
+                 // Or render the placeholder CategoriesPage component
+                return <CategoriesPage />; // Kept placeholder for clarity
+            case 'asistente':
+                // Pass necessary props to AssistantPage
+                return <AssistantPage
+                           chatHistory={chatHistory}
+                           inputText={inputText}
+                           setInputText={setInputText}
+                           handleSendMessage={handleSendMessage}
+                           isAssistantLoading={isAssistantLoading}
+                           darkMode={darkMode}
+                           themeColor={themeColor}
+                           initialAssistantGreeting={initialAssistantGreeting} // Pass greeting prop
+                       />;
+            case 'perfil':
+                 // Profile page is now effectively handled by the modal trigger
+                 // Render HomePage content when 'perfil' tab is logically active but modal is closed
+                 // Or render the placeholder ProfilePage component
+                return <ProfilePage setActiveModal={setActiveModal} darkMode={darkMode} />; // Pass setActiveModal and darkMode
+            default: // Fallback to home page
+                return <HomePage categories={categories} onCategoryClick={handleCategoryClick} />;
+        }
+    };
+
+
+    // --- Render JSX ---
+    return (
+        <> {/* Use Fragment to allow style tag if needed */}
+            {/* <style>{styles}</style> */} {/* Removed style tag as animation is now inline */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6 }}
+                className={`h-screen flex flex-col font-sans ${darkMode ? 'dark bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}
+            >
+                {/* --- Modals --- */}
+                <AnimatePresence>
+                    {activeModal && (
+                        <motion.div // Backdrop overlay
+                            key="modal-backdrop"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                            onClick={() => { setActiveModal(''); setSelectedCategoryData(null); setEmergencyModalView('main'); setProfileSaveMessage(''); }} // Clear profile message on close
+                        >
+                            {/* --- UPDATED: Modal Content Container --- */}
+                            <motion.div // Modal content container with animation
+                                key="modal-content"
+                                initial={{ scale: 0.8, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.8, opacity: 0 }}
+                                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                // Apply dynamic theme classes - REVERTED Emergency Modal BG
+                                className={`rounded-lg shadow-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto
+                                    ${ activeModal === 'categoryDetail'
+                                        // Category Detail Modal Styling (Pastel Theme)
+                                        ? `${currentPastelBg} border-2 ${currentPastelBorder} ${currentDarkPastelBorder} dark:bg-gray-900 dark:text-gray-100`
+                                        // Other Modals Styling (Standard)
+                                        : `bg-white dark:bg-gray-900 dark:text-gray-100`
+                                    }
+                                `}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {/* --- Perfil Modal Content --- */}
+                                {activeModal === 'perfil' && (
+                                    <>
+                                        {/* Title uses standard text based on dark/light mode */}
+                                        <h2 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Cuéntanos un poco sobre ti 🧑‍💼</h2>
+                                        <p className={`text-sm mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Queremos conocerte mejor para ayudarte como mereces. 💬</p>
+                                        {/* Name Input */}
+                                        <label htmlFor="profileNameInput" className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>¿Cómo te llamas?</label>
+                                        <input
+                                            id="profileNameInput"
+                                            value={profileName}
+                                            onChange={(e) => setProfileName(e.target.value)}
+                                            className={`w-full mb-3 p-2 border rounded ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 placeholder-gray-500 text-gray-900'}`}
+                                            placeholder="Tu nombre"
+                                        />
+                                        {/* Occupation Input */}
+                                        <label htmlFor="profileOccupationInput" className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>¿A qué te dedicas actualmente?</label>
+                                        <input
+                                            id="profileOccupationInput"
+                                            value={profileOccupation}
+                                            onChange={(e) => setProfileOccupation(e.target.value)}
+                                            className={`w-full mb-3 p-2 border rounded ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 placeholder-gray-500 text-gray-900'}`}
+                                            placeholder="Tu ocupación o trabajo"
+                                        />
+                                        {/* Goals Textarea */}
+                                        <label htmlFor="profileGoalsInput" className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>¿Qué te gustaría lograr en EE.UU.?</label>
+                                        <textarea
+                                            id="profileGoalsInput"
+                                            value={profileGoals}
+                                            onChange={(e) => setProfileGoals(e.target.value)}
+                                            className={`w-full p-2 border rounded ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 placeholder-gray-500 text-gray-900'}`}
+                                            rows={4}
+                                            placeholder="Cuéntanos tus sueños, metas o tu historia..."
+                                        />
+                                        {/* Save Feedback Message - UPDATED with icon */}
+                                        {profileSaveMessage && (
+                                            <p className={`mt-3 text-sm font-medium flex items-center justify-center ${profileSaveMessage.includes('Error') ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                                            {profileSaveMessage.includes('Error') ? '⚠️' : '✅'}
+                                            <span className="ml-2">{profileSaveMessage}</span>
+                                            </p>
+                                        )}
+                                        <div className="text-right mt-4">
+                                            {/* Changed to motion.button and added effects */}
+                                            <motion.button
+                                                whileHover={{ scale: 1.03 }}
+                                                whileTap={{ scale: 0.97 }}
+                                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors"
+                                                onClick={handleSaveProfile} // Call save handler
+                                            >
+                                                Guardar y cerrar
+                                            </motion.button>
+                                        </div>
+                                    </>
+                                )}
+                                {/* --- Config Modal Content --- UPDATED --- */}
+                                {activeModal === 'config' && (
+                                    <>
+                                        <h2 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Configuración ⚙️</h2>
+                                        {/* Chat Tone Selection - UPDATED */}
+                                        <label className={`block mb-2 font-medium ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Tono del chat</label>
+                                        <select
+                                            value={chatTone} // Controlled component
+                                            onChange={(e) => setChatTone(e.target.value)} // Update state on change
+                                            className={`w-full mb-4 p-2 border rounded ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                                        >
+                                            <option value="amigable">Amigable</option>
+                                            <option value="profesional">Profesional</option>
+                                            <option value="serio">Serio</option>
+                                            <option value="inspirador">Inspirador</option>
+                                            <option value="resumido">Resumido</option>
+                                            <option value="explicativo">Explicativo</option>
+                                        </select>
+                                        {/* Theme Color Selection */}
+                                        <label className={`block mb-2 font-medium ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Color del tema</label>
+                                        <div className="flex gap-2 mb-4 flex-wrap">
+                                            {Object.keys({ blue: '', red: '', green: '', yellow: '', purple: '', pink: '', orange: '', teal: '', indigo: '', gray: '', lime: '', cyan: '' }).map(color => (
+                                                <button key={color} aria-label={`Set theme to ${color}`} onClick={() => setThemeColor(color)} className={`w-6 h-6 rounded-full ${ { blue: 'bg-blue-600', red: 'bg-red-600', green: 'bg-green-600', yellow: 'bg-yellow-500', purple: 'bg-purple-600', pink: 'bg-pink-600', orange: 'bg-orange-600', teal: 'bg-teal-600', indigo: 'bg-indigo-600', gray: 'bg-gray-700', lime: 'bg-lime-600', cyan: 'bg-cyan-600'}[color] || 'bg-gray-500' } border-2 ${themeColor === color ? 'border-black dark:border-white' : 'border-transparent'}`} ></button>
+                                            ))}
+                                        </div>
+                                        <div className="text-right mt-6">
+                                             {/* Changed to motion.button and added effects */}
+                                            <motion.button
+                                                whileHover={{ scale: 1.03 }}
+                                                whileTap={{ scale: 0.97 }}
+                                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors"
+                                                onClick={() => setActiveModal('')}
+                                             >
+                                                 Guardar configuración
+                                             </motion.button>
+                                         </div>
+                                    </>
+                                )}
+                                {/* --- Emergencia Modal Content --- UPDATED --- */}
+                                {activeModal === 'emergencia' && (
+                                    <>
+                                        {emergencyModalView === 'main' && ( <div className="space-y-2">
+                                            {/* Title now uses theme color */}
+                                            <h2 className={`text-xl font-bold mb-4 text-center ${currentThemeTitleText}`}>🚨 Emergencia</h2>
+                                            {/* Buttons with soft colors */}
+                                            <motion.a whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} href="tel:911" className="block w-full bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-800/40 dark:text-red-200 dark:hover:bg-red-800/60 py-2.5 rounded text-center font-semibold transition-colors">Llamar al 911</motion.a>
+                                            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={goToSOSSetupView} className="block w-full bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-800/40 dark:text-yellow-200 dark:hover:bg-yellow-800/60 py-2.5 rounded font-semibold transition-colors" > SOS </motion.button>
+                                            <motion.a whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} href="https://translate.google.com/?sl=auto&tl=en&op=translate" target="_blank" rel="noopener noreferrer" className="block w-full bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-800/40 dark:text-blue-200 dark:hover:bg-blue-800/60 py-2.5 rounded text-center font-semibold transition-colors">Traductor de emergencia</motion.a>
+                                            <motion.a whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} href="https://travel.state.gov/content/travel/en/consularnotification.html" target="_blank" rel="noopener noreferrer" className="block w-full bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-800/40 dark:text-indigo-200 dark:hover:bg-indigo-800/60 py-2.5 rounded text-center font-semibold transition-colors">Ubicar consulado</motion.a>
+                                            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setEmergencyModalView('rights')} className="block w-full bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-800/40 dark:text-green-200 dark:hover:bg-green-800/60 py-2.5 rounded font-semibold transition-colors">Ver derechos si detención</motion.button>
+                                            <motion.a whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} href="https://www.immigrationadvocates.org/nonprofit/legaldirectory/" target="_blank" rel="noopener noreferrer" className="block w-full bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-800/40 dark:text-purple-200 dark:hover:bg-purple-800/60 py-2.5 rounded text-center font-semibold transition-colors">Reportar anónimo</motion.a>
+                                            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setActiveModal(''); setEmergencyModalView('main'); }} className={`mt-4 block w-full py-2 rounded font-semibold transition-colors ${darkMode ? 'bg-gray-600 hover:bg-gray-500 text-gray-100' : 'bg-gray-500 hover:bg-gray-600 text-white'}`}>Cerrar</motion.button>
+                                        </div> )}
+                                        {emergencyModalView === 'rights' && ( <>
+                                            {/* Title now uses theme color */}
+                                            <h3 className={`text-lg font-semibold mb-3 text-center ${currentThemeTitleText}`}>Tus derechos al ser detenido</h3>
+                                            {/* Text uses standard contrast */}
+                                            <ul className={`list-disc list-inside text-sm space-y-1.5 mb-4 pl-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                <li>No firmes nada sin un abogado.</li> <li>Tienes derecho a permanecer en silencio.</li> <li>Pide hablar con un abogado inmediatamente.</li> <li>No reveles tu estatus migratorio ni país de origen.</li> <li>Guarda el número de un abogado o familiar.</li>
+                                            </ul>
+                                            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => setEmergencyModalView('main')} className={`block w-full py-2 rounded font-semibold transition-colors ${darkMode ? 'bg-gray-600 hover:bg-gray-500 text-gray-100' : 'bg-gray-300 hover:bg-gray-400 text-gray-800'}`}>Volver</motion.button>
+                                        </> )}
+                                        {emergencyModalView === 'sos_setup' && ( <div className="space-y-4">
+                                             {/* Title now uses theme color */}
+                                            <h2 className={`text-xl font-bold mb-2 text-center ${currentThemeTitleText}`}>🆘 Mensaje de Emergencia</h2>
+                                            {/* Text uses standard contrast */}
+                                            <p className={`text-sm p-3 rounded ${darkMode ? 'bg-gray-700 text-gray-100' : 'bg-gray-100 text-gray-900'}`}> "{createSOSMessage()}" </p>
+                                            <div className="mb-4"> {/* Grouping input and save */}
+                                                 <label htmlFor="emergencyPhone" className={`block mb-1 text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Contacto de Emergencia:</label> {/* Adjusted text color */}
+                                                <div className="flex items-center space-x-2"> <input id="emergencyPhone" type="tel" value={emergencyContact} onChange={(e) => setEmergencyContact(e.target.value)} placeholder="Número con código de país" className={`flex-grow p-2 border rounded ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300 text-gray-900 placeholder-gray-500'}`} /> {/* Reverted input style */}
+                                                    {/* Save Button with soft colors */}
+                                                    <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={handleSaveContact} className={`px-4 py-2 rounded font-medium transition-colors text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-800/40 dark:text-blue-200 dark:hover:bg-blue-800/60`} > Guardar </motion.button>
+                                                </div> <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Incluye código de país (ej: 1555...). Presiona 'Guardar'.</p> {/* Adjusted text color */}
+                                            </div>
+                                            {/* Send buttons section */}
+                                            <div className="space-y-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                                {!isContactSaved && ( <p className="text-xs text-center text-yellow-600 dark:text-yellow-400 font-medium mb-1"> ¡Recuerda guardar el contacto antes de enviar! </p> )}
+                                                {/* WhatsApp Button with soft colors and icon */}
+                                                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSendWhatsApp} disabled={!isContactSaved} className={`w-full flex items-center justify-center py-2.5 rounded font-semibold transition-colors text-sm ${!isContactSaved ? 'bg-green-50 dark:disabled:bg-green-900/20 text-green-400 dark:disabled:text-green-500/50 cursor-not-allowed' : 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-800/40 dark:text-green-200 dark:hover:bg-green-800/60'}`} >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 mr-2"><path d="M3.5 2A1.5 1.5 0 0 0 2 3.5v13A1.5 1.5 0 0 0 3.5 18h13a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 16.5 2h-13Zm11.595 5.004a.75.75 0 0 1 .304 1.054l-5.25 8.5a.75.75 0 0 1-1.308-.043l-2.75-5.5a.75.75 0 0 1 1.33-.665l2.013 4.025 4.616-7.496a.75.75 0 0 1 1.054-.304Z" /></svg> {/* Simple check / phone icon */}
+                                                    Enviar por WhatsApp
+                                                </motion.button>
+                                                {/* SOS Feedback Message - UPDATED with icon */}
+                                                {sosSendAttemptMessage && (
+                                                    <p className={`text-xs text-center p-2 rounded mt-2 flex items-center justify-center ${sosSendAttemptMessage.startsWith('Error') ? 'bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300'}`}>
+                                                        {sosSendAttemptMessage.startsWith('Error') && <span className="mr-1">⚠️</span>}
+                                                        {sosSendAttemptMessage}
+                                                    </p>
+                                                )}
+                                                <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => setEmergencyModalView('main')} className={`block w-full py-2 rounded font-semibold transition-colors mt-2 ${darkMode ? 'bg-gray-600 hover:bg-gray-500 text-gray-100' : 'bg-gray-300 hover:bg-gray-400 text-gray-800'}`}>Volver</motion.button>
+                                            </div>
+                                         </div> )}
+                                    </>
+                                )}
+                                {/* --- Category Detail Modal Content --- UPDATED w/ Themed Styles --- */}
+                                {activeModal === 'categoryDetail' && selectedCategoryData && (
+                                    <>
+                                        {/* Title uses pastel text in light mode */}
+                                        <h2 className={`text-2xl font-bold mb-3 flex items-center ${darkMode ? 'text-white' : currentPastelText }`}>
+                                            <span className="text-3xl mr-2">{selectedCategoryData.emoji}</span>
+                                            {selectedCategoryData.label}
+                                        </h2>
+                                        {/* Content uses standard text */}
+                                        <p className={`text-sm mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            {selectedCategoryData.content}
+                                        </p>
+                                        {/* Link section uses standard text, pastel border */}
+                                        {(extraLinksMap[selectedCategoryData.label] || []).length > 0 && ( // Use label for lookup - FIXED
+                                            <div className={`mt-4 pt-3 border-t ${darkMode ? 'dark:border-gray-700' : currentPastelBorder}`}>
+                                                <h3 className={`text-sm font-semibold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Recursos Útiles:</h3>
+                                                <ul className="space-y-3">
+                                                    {(extraLinksMap[selectedCategoryData.label] || []).map((linkInfo, idx) => ( // Use label for lookup - FIXED
+                                                        <li key={idx} className="text-sm">
+                                                            <p className={`mb-0.5 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}> {linkInfo.description} </p>
+                                                            <a href={linkInfo.url} target="_blank" rel="noopener noreferrer" className={`block w-fit underline ${darkMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-600 hover:text-blue-800'} `} >
+                                                                {(() => { if (linkInfo.url === '#') return "Buscar localmente"; try { const url = new URL(linkInfo.url); return url.hostname.replace(/^www\./, ''); } catch { return linkInfo.url; } })()}
+                                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 inline-block ml-1 align-baseline"> <path fillRule="evenodd" d="M4.25 5.5a.75.75 0 0 0-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 1 1.5 0v4A2.25 2.25 0 0 1 12.75 17h-8.5A2.25 2.25 0 0 1 2 14.75v-8.5A2.25 2.25 0 0 1 4.25 4h5a.75.75 0 0 1 0 1.5h-5Z" clipRule="evenodd" /> <path fillRule="evenodd" d="M6.194 12.753a.75.75 0 0 0 1.06.053L16.5 4.44v2.81a.75.75 0 0 0 1.5 0v-4.5a.75.75 0 0 0-.75-.75h-4.5a.75.75 0 0 0 0 1.5h2.553l-9.056 8.19a.75.75 0 0 0-.053 1.06Z" clipRule="evenodd" /> </svg>
+                                                            </a>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+                                        <div className="text-right mt-6">
+                                             {/* Changed to motion.button and added effects */}
+                                            <motion.button
+                                                whileHover={{ scale: 1.03 }}
+                                                whileTap={{ scale: 0.97 }}
+                                                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-500 text-white rounded font-medium transition-colors text-sm"
+                                                onClick={() => { setActiveModal(''); setSelectedCategoryData(null); }}
+                                            >
+                                                 Cerrar
+                                            </motion.button>
+                                        </div>
+                                    </>
+                                )}
+                                {/* --- Help Modal Content --- NEW --- */}
+                                {activeModal === 'help' && (
+                                     <>
+                                        <h2 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Ayuda y Soporte ❓</h2>
+
+                                        <div className="space-y-4 text-sm">
+                                            <section>
+                                                <h3 className={`font-semibold mb-1 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Contacto</h3>
+                                                <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                    Si tienes problemas técnicos o preguntas sobre la aplicación, contáctanos en: <a href="mailto:soporte@example.com" className="text-blue-600 dark:text-blue-400 underline">soporte@example.com</a>
+                                                    {/* Replace with actual contact info */}
+                                                </p>
+                                            </section>
+
+                                            <section>
+                                                <h3 className={`font-semibold mb-1 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Preguntas Frecuentes (FAQ)</h3>
+                                                <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                    Visita nuestra sección de <a href="#" className="text-blue-600 dark:text-blue-400 underline">Preguntas Frecuentes</a> para encontrar respuestas a dudas comunes.
+                                                    {/* Replace # with actual FAQ link */}
+                                                </p>
+                                            </section>
+
+                                            <section>
+                                                <h3 className={`font-semibold mb-1 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>¿Cómo usar la App?</h3>
+                                                <ul className={`list-disc list-inside space-y-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                    <li>Navega por las categorías en los carruseles de inicio o en la barra lateral.</li>
+                                                    <li>Usa la pestaña "Asistente" para hacer preguntas directas.</li>
+                                                    <li>Configura tu perfil y preferencias en los modales correspondientes.</li>
+                                                    <li>Usa el botón SOS para emergencias.</li>
+                                                </ul>
+                                            </section>
+                                        </div>
+
+                                        <div className="text-right mt-6">
+                                            <motion.button
+                                                whileHover={{ scale: 1.03 }}
+                                                whileTap={{ scale: 0.97 }}
+                                                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-500 text-white rounded font-medium transition-colors text-sm"
+                                                onClick={() => setActiveModal('')}
+                                            >
+                                                Cerrar
+                                            </motion.button>
+                                        </div>
+                                    </>
+                                )}
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* --- Header Section --- UPDATED --- */}
+                <header className={`w-full text-white shadow-md py-3 px-4 flex items-center justify-between sticky top-0 z-30 ${currentThemeHeaderBg}`}>
+                    <button onClick={() => setSidebarOpen(true)} className="mr-3 text-white text-2xl p-1 rounded hover:bg-black/10 transition-colors" aria-label="Abrir menú" > ☰ </button>
+                    <h1 className="text-xl sm:text-2xl font-bold text-center flex-1"> Epicentrum Origin </h1>
+                    <div className="flex items-center space-x-2">
+                        <button onClick={() => setDarkMode(!darkMode)} className="text-2xl p-1 rounded hover:bg-black/10 transition-colors" aria-label={darkMode ? "Activar modo claro" : "Activar modo noche"} > {darkMode ? '🌞' : '🌙'} </button>
+                        {/* Settings Button - UPDATED */}
+                        <button
+                            onClick={() => { setProfileSaveMessage(''); setActiveModal('config'); }} // Open config modal
+                            className="text-2xl p-1 rounded hover:bg-black/10 transition-colors"
+                            aria-label="Abrir configuración" // Updated aria-label
+                        >
+                            ⚙️ {/* Gear Icon */}
+                        </button>
+                        {/* SOS Button Removed from Header */}
+                    </div>
+                </header>
+
+                {/* --- Informative Phrases Carousel --- */}
+                {/* Hide phrases carousel when on assistant page */}
+                {currentPage !== 'asistente' && (
+                    <section className={`w-full border-b px-4 py-3 flex items-center justify-center shadow-sm ${darkMode ? 'bg-gradient-to-r from-gray-700 via-gray-800 to-gray-700 border-gray-600' : 'bg-gradient-to-r from-yellow-100 via-yellow-200 to-yellow-100 border-yellow-300'}`}>
+                        <AnimatePresence mode="wait">
+                            <motion.p key={currentPhraseIndex} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.5 }} className={`text-sm font-medium text-center ${darkMode ? 'text-gray-200' : 'text-yellow-800'}`} >
+                                {informativePhrases[currentPhraseIndex]}
+                            </motion.p>
+                        </AnimatePresence>
+                    </section>
+                )}
+
+                {/* --- Main Content Area --- UPDATED with Page Transitions --- */}
+                {/* Main area scrolls, padding bottom prevents overlap with nav bar */}
+                <main className="flex-1 w-full relative"> {/* Added relative positioning */}
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={currentPage} // Key changes when page changes, triggering animation
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1, transition: { duration: 0.3 } }}
+                            exit={{ opacity: 0, transition: { duration: 0.2 } }}
+                            className="absolute inset-0 overflow-y-auto pb-16" // Fill parent, enable scroll
+                        >
+                            {renderCurrentPage()}
+                        </motion.div>
+                    </AnimatePresence>
+                </main>
+
+
+                {/* --- Settings/History Sidebar --- UPDATED --- */}
+                <AnimatePresence>
+                    {sidebarOpen && (
+                        <>
+                            <motion.div key="settings-sidebar-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black bg-opacity-30 z-40" onClick={() => setSidebarOpen(false)} />
+                            <motion.div key="settings-sidebar-content" initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} transition={{ type: 'tween', ease: 'easeInOut', duration: 0.3 }} className={`fixed top-0 left-0 h-full w-64 shadow-lg z-50 flex flex-col ${darkMode ? 'bg-gray-800 border-r border-gray-700' : 'bg-white border-r border-gray-200'}`} >
+                                {/* Header - UPDATED with dynamic theme background */}
+                                <div className={`flex items-center justify-between p-4 ${currentThemeHeaderBg} text-white`}>
+                                    <h2 className={`text-lg font-semibold text-white`}>Historial de Chat</h2>
+                                    <button onClick={() => setSidebarOpen(false)} className={`p-1 rounded text-white/80 hover:text-white hover:bg-black/10`}>✕</button>
+                                </div>
+                                {/* History List */}
+                                <div className="flex-1 overflow-y-auto mt-2">
+                                    <ul className="space-y-2 px-2 pb-4">
+                                        {chatHistory.length > 1 ? ( // Show history only if there's more than the initial message
+                                            chatHistory
+                                                // Optionally filter out the very first assistant message if it's the generic welcome
+                                                .filter((msg, idx) => !(idx === 0 && msg.content.startsWith(initialAssistantGreeting))) // Filter initial greeting - UPDATED
+                                                .map((message, index) => (
+                                                    <li key={index} className={`p-2 rounded text-xs hover:bg-gray-200 dark:hover:bg-gray-700/50 transition-colors duration-100 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}> {/* Added hover effect */}
+                                                        <span className={`font-semibold ${message.type === 'user' ? 'text-blue-500' : (darkMode ? 'text-gray-300' : 'text-gray-600')}`}>
+                                                            {message.type === 'user' ? 'Tú: ' : 'Asistente: '}
+                                                        </span>
+                                                        {/* Truncate long messages */}
+                                                        {message.content.substring(0, 60)}{message.content.length > 60 ? '...' : ''}
+                                                    </li>
+                                                ))
+                                        ) : (
+                                            <li className={`px-2 py-4 text-sm text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                No hay historial aún.
+                                            </li>
+                                        )}
+                                    </ul>
+                                </div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
+
+                {/* --- Category Sidebar --- UPDATED --- */}
+                <CategorySidebar
+                    isOpen={isCategorySidebarOpen}
+                    onClose={() => setIsCategorySidebarOpen(false)}
+                    categories={categories} // Pass original categories structure
+                    onCategoryClick={handleCategoryClick} // Pass the handler
+                    darkMode={darkMode}
+                    themeColor={themeColor} // Pass theme color
+                    themeHeaderBgClasses={themeHeaderBgClasses} // Pass theme header classes
+                    setActiveModal={setActiveModal} // Pass function to open help modal
+                />
+
+                {/* --- Bottom Navigation Bar --- UPDATED --- */}
+                {/* Always visible */}
+                <BottomNavigationBar
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                    openCategorySidebar={() => setIsCategorySidebarOpen(true)} // Pass function to open category sidebar
+                    darkMode={darkMode}
+                    themeColor={themeColor}
+                    setActiveModal={setActiveModal} // Pass function to open emergency modal
+                    setEmergencyModalView={setEmergencyModalView} // Pass function to set emergency modal view
+                />
+
+            </motion.div>
+        </>
+    );
+}
